@@ -186,6 +186,7 @@
         <a href="#tui">TUI</a>
         <a href="#providers">Providers</a>
         <a href="#config">Config</a>
+        <a href="#mcp">MCP</a>
         <a href="#dev">Dev</a>
       </div>
     </div>
@@ -256,6 +257,11 @@
           <h3>🌐 Browser Automation</h3>
           <p>Playwright-powered browser automation for web testing, screenshots, and DOM inspection right from chat.</p>
           <div class="tags"><span>Playwright</span><span>automation</span></div>
+        </div>
+        <div class="card">
+          <h3>🔌 MCP Server <span class="badge">new</span></h3>
+          <p>Model Context Protocol server exposing all 63 LoveCode tools. Use with Claude Desktop, VS Code, or any MCP client via <code>lovecode mcp</code>.</p>
+          <div class="tags"><span>MCP</span><span>Claude</span><span>VS Code</span><span>protocol</span></div>
         </div>
       </div>
     </div>
@@ -342,6 +348,7 @@
         <div class="cmd-item"><span class="cmd">lovecode plugin</span><span class="desc">Plugin management</span></div>
         <div class="cmd-item"><span class="cmd">lovecode telemetry</span><span class="desc">Telemetry settings</span></div>
         <div class="cmd-item"><span class="cmd">lovecode install</span><span class="desc">Install info & guide</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode mcp</span><span class="desc">MCP server (63 tools via stdio)</span></div>
       </div>
 
       <h3 style="margin:24px 0 12px;font-size:16px;">🖥️ TUI Slash Commands</h3>
@@ -443,7 +450,76 @@
     </div>
   </section>
 
-  <section id="config">
+  <section id="mcp">
+    <div class="container">
+      <h2><span class="icon">🔌</span> MCP Server</h2>
+      <p>LoveCode exposes all 63 tools via the Model Context Protocol (MCP). Connect any MCP-compatible client to use LoveCode as a coding agent backend.</p>
+
+      <h3 style="margin:24px 0 12px;font-size:16px;">⚡ Quick Start</h3>
+      <div class="install-step">
+        <div class="num">1</div>
+        <div class="body">
+          <p>Install LoveCode</p>
+          <code>npm install -g lovecode-ai</code>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="num">2</div>
+        <div class="body">
+          <p>Add to your MCP client config (Claude Desktop, VS Code, etc.)</p>
+          <div class="code-block" style="margin-top:8px;border:none;padding:0;">
+            {<br>
+            &nbsp;&nbsp;"mcpServers": {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;"lovecode": {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"command": "lovecode",<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"args": ["mcp"]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+            &nbsp;&nbsp;}<br>
+            }
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin:24px 0 12px;font-size:16px;">🛠️ Exposed Tools</h3>
+      <p>All 63 LoveCode tools are available via MCP, organized into categories:</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>📁 File Operations</h3>
+          <p>read, write, edit, create, delete, append, rename, duplicate, scan, tree</p>
+        </div>
+        <div class="card">
+          <h3>🔍 Search & Find</h3>
+          <p>grep, glob, find by name, semantic search, file ranking</p>
+        </div>
+        <div class="card">
+          <h3>✏️ Editor Tools</h3>
+          <p>inline patch, syntax check, undo/snapshot, multi-file refactor</p>
+        </div>
+        <div class="card">
+          <h3>💻 Shell & Exec</h3>
+          <p>sandboxed command execution with timeout and output capture</p>
+        </div>
+        <div class="card">
+          <h3>🧠 Memory & Sessions</h3>
+          <p>preferences, repo notes, workflows, vector search</p>
+        </div>
+        <div class="card">
+          <h3>🔗 Git Integration</h3>
+          <p>status, commit, diff, branches, log — full git workflow</p>
+        </div>
+        <div class="card">
+          <h3>📊 Project Analysis</h3>
+          <p>project detection, dependency analysis, repo summary</p>
+        </div>
+        <div class="card">
+          <h3>🧩 Plugins</h3>
+          <p>Docker, Kubernetes, Firebase, Prisma — managed via plugin system</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="config" style="background:var(--surface);border-top:1px solid var(--border);">
     <div class="container">
       <h2><span class="icon">⚙️</span> Configuration</h2>
       <p>LoveCode stores config in <code>.lovecode/config.yaml</code>. Managed via <code>lovecode config</code> or <code>lovecode init</code>.</p>
@@ -505,6 +581,7 @@
             <li><code>src/security/</code> — Security sandbox</li>
             <li><code>src/plugins/</code> — Plugin system</li>
             <li><code>src/browser/</code> — Playwright automation</li>
+            <li><code>src/mcp/</code> — MCP protocol server</li>
           </ul>
         </div>
         <div class="card">
@@ -550,12 +627,12 @@
             <li>Git integration</li>
             <li>Plugin system</li>
             <li>Security & secret scanning</li>
+            <li>MCP server (63 tools via stdio)</li>
           </ul>
         </div>
         <div class="card">
           <h3>🔜 Coming Soon</h3>
           <ul class="feature-list">
-            <li>MCP server support</li>
             <li>Windows/WSL support</li>
             <li>Remote agent mode</li>
             <li>Collaborative sessions</li>
