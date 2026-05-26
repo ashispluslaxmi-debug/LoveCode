@@ -1,4 +1,5 @@
-model: deepseek
+model: llama3-70b-8192
+provider: groq
 theme: neon
 approval_mode: smart
 performance:
