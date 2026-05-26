@@ -32,10 +32,10 @@ const registry: ProviderEntry[] = [
   {
     name: 'groq',
     provider: new OpenAILikeProvider('groq', 'https://api.groq.com/openai/v1'),
-    models: ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768', 'gemma2-9b-it', 'deepseek-r1-distill-llama-70b'],
+    models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768', 'gemma2-9b-it', 'deepseek-r1-distill-llama-70b', 'meta-llama/llama-4-scout-17b-16e-instruct', 'qwen/qwen3-32b'],
     local: false,
     priority: 30,
-    defaultModel: 'llama3-70b-8192',
+    defaultModel: 'llama-3.3-70b-versatile',
     getConfig: (model: string) => ({
       model,
       baseUrl: 'https://api.groq.com/openai/v1',

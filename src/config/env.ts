@@ -52,6 +52,12 @@ export function loadEnv(rootDir?: string): Record<string, string> {
     if (envVal) vars[v.key] = envVal;
   }
 
+  for (const [key, value] of Object.entries(vars)) {
+    if (value && !process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+
   return vars;
 }
 
