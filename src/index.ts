@@ -16,6 +16,7 @@ import { tuiCommand } from './commands/tui.js';
 import { pluginCommand } from './commands/plugin.js';
 import { browserCommand } from './commands/browser.js';
 import { securityCommand } from './commands/security.js';
+import { mcpCommand } from './commands/mcp.js';
 
 const pkg = {
   version: '0.1.0',
@@ -47,3 +48,4 @@ program.addCommand(tuiCommand);
 program.addCommand(pluginCommand);
 program.addCommand(browserCommand);
 program.addCommand(securityCommand);
+program.addCommand(mcpCommand);
