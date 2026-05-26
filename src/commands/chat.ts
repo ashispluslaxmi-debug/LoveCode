@@ -1,6 +1,5 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { OllamaProvider } from '../ai/ollama.js';
 import { ChatHistory, SlashHandler, renderMarkdown, createSimpleInput } from '../chat/index.js';
 import type { AIProvider, AIProviderConfig } from '../ai/provider.js';
 import {
@@ -8,7 +7,6 @@ import {
   appendToSession,
   writeChatLog,
   ensureDirs,
-  getPreferences,
 } from '../memory/index.js';
 
 function renderHeader(): void {
@@ -26,42 +24,64 @@ function renderUserMessage(content: string): void {
 export const chatCommand = new Command('chat')
   .alias('c')
   .description('Start an interactive chat session with LoveCode AI')
-  .option('-m, --model <name>', 'AI model to use', 'codellama')
-  .option('-p, --provider <name>', 'AI provider (ollama, openai-compatible)', 'ollama')
-  .option('--base-url <url>', 'Base URL for the AI provider', 'http://localhost:11434')
+  .option('-m, --model <name>', 'AI model to use')
+  .option('-p, --provider <name>', 'AI provider (ollama, groq, openrouter, together, huggingface)')
+  .option('--base-url <url>', 'Base URL for the AI provider')
   .option('--no-stream', 'Disable streaming responses')
   .option('--resume', 'Resume last session')
   .action(async (options) => {
     ensureDirs();
-    const history = new ChatHistory();
-    const slash = new SlashHandler();
-    const provider: AIProvider = new OllamaProvider();
-    const prefs = getPreferences();
 
-    const providerConfig: AIProviderConfig = {
-      model: options.model,
-      baseUrl: options.baseUrl,
-      temperature: prefs.indentSize ? 0.2 : 0.2,
-      maxTokens: 4096,
-    };
+    let loadEnvFn: (dir?: string) => Record<string, string> = () => ({});
+    let loadConfigFn: () => { model?: string; provider?: string } = () => ({});
+    try {
+      ({ loadEnv: loadEnvFn } = await import('../config/env.js'));
+      ({ loadConfig: loadConfigFn } = await import('../config/config.js'));
+      loadEnvFn();
+    } catch {
+      // proceed without config
+    }
 
-    history.createSession(`Chat - ${options.model}`);
+    let cfgModel = options.model;
+    let cfgProvider = options.provider;
+    let cfgBaseUrl = options.baseUrl;
 
-    renderHeader();
-    console.log(chalk.dim(`  Model: ${options.model}  •  Provider: ${options.provider}`));
-    console.log(chalk.dim(`  Session: ${history.getCurrent()?.id}\n`));
-
-    if (!(provider as OllamaProvider).isAvailable) {
-      const available = await (provider as OllamaProvider).isAvailable(options.baseUrl);
-      if (!available) {
-        console.log(chalk.yellow('  ⚠ Ollama not detected. Start it with: ollama serve'));
-        console.log(chalk.yellow(`  Ensure model "${options.model}" is pulled: ollama pull ${options.model}\n`));
+    if (!cfgModel || !cfgProvider) {
+      try {
+        const config = loadConfigFn();
+        if (!cfgModel) cfgModel = config.model || 'codellama';
+        if (!cfgProvider) cfgProvider = config.provider || 'ollama';
+      } catch {
+        if (!cfgModel) cfgModel = 'codellama';
+        if (!cfgProvider) cfgProvider = 'ollama';
       }
     }
 
-    const session = createSession(`Chat - ${options.model}`, {
-      model: options.model,
-      provider: options.provider,
+    const { resolveModel } = await import('../ai/registry.js');
+    const resolved = resolveModel(cfgProvider || cfgModel || 'codellama');
+    const entry = resolved.entry;
+    const model = entry.models.includes(cfgModel || '') ? cfgModel || entry.defaultModel : entry.defaultModel;
+    const cfg = entry.getConfig?.(model) || { model, baseUrl: cfgBaseUrl || 'http://localhost:11434', temperature: 0.2, maxTokens: 4096 };
+
+    const provider: AIProvider = entry.provider;
+    const providerConfig: AIProviderConfig = {
+      model,
+      baseUrl: cfgBaseUrl || cfg.baseUrl,
+      temperature: cfg.temperature ?? 0.2,
+      maxTokens: cfg.maxTokens ?? 4096,
+    };
+
+    const history = new ChatHistory();
+    const slash = new SlashHandler();
+    history.createSession(`Chat - ${model}`);
+
+    renderHeader();
+    console.log(chalk.dim(`  Model: ${model}  •  Provider: ${entry.name}`));
+    console.log(chalk.dim(`  Session: ${history.getCurrent()?.id}\n`));
+
+    const session = createSession(`Chat - ${model}`, {
+      model,
+      provider: entry.name,
     });
     let dirty = false;
 
@@ -99,11 +119,11 @@ export const chatCommand = new Command('chat')
         }
         if (input === '/clear') {
           history.reset();
-          history.createSession(`Chat - ${options.model}`);
+          history.createSession(`Chat - ${model}`);
         }
         if (input === '/reset') {
           history.reset();
-          history.createSession(`Chat - ${options.model}`);
+          history.createSession(`Chat - ${model}`);
           console.log(chalk.green('  ✓ Conversation reset\n'));
         }
         continue;
