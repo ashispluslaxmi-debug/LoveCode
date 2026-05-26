@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LoveCode AI — Terminal-native autonomous coding agent</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-dim: #8b949e;
+      --primary: #00afff;
+      --secondary: #5f87ff;
+      --accent: #ff6b6b;
+      --success: #00d787;
+      --warning: #ffaf00;
+      --code-bg: #1c2128;
+      --max-width: 900px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    pre, code { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; }
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,17,23,.92); backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    nav .logo { font-size: 18px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    nav .logo span { color: var(--primary); }
+    nav .links { display: flex; gap: 20px; font-size: 14px; }
+    nav .links a { color: var(--text-dim); transition: color .2s; }
+    nav .links a:hover { color: var(--text); text-decoration: none; }
+    .hero {
+      padding: 80px 0 60px; text-align: center;
+      background: linear-gradient(180deg, rgba(0,175,255,.08) 0%, transparent 100%);
+    }
+    .hero h1 { font-size: clamp(32px,6vw,56px); font-weight: 800; letter-spacing: -.03em; margin-bottom: 16px; }
+    .hero h1 span { background: linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 18px; color: var(--text-dim); max-width: 640px; margin: 0 auto 32px; }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600;
+      border: none; cursor: pointer; transition: transform .15s, box-shadow .15s;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { box-shadow: 0 4px 16px rgba(0,175,255,.35); }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--text-dim); }
+    .hero-cmd {
+      margin-top: 40px; display: inline-block;
+      background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px 20px; font-size: 14px; color: var(--text-dim);
+    }
+    .hero-cmd span { color: var(--success); }
+    section { padding: 60px 0; }
+    section h2 {
+      font-size: 24px; font-weight: 700; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    section h2 .icon { font-size: 20px; }
+    section > .container > p { color: var(--text-dim); margin-bottom: 32px; max-width: 600px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 16px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 24px; transition: border-color .2s;
+    }
+    .card:hover { border-color: var(--text-dim); }
+    .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .card h3 .badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+      background: rgba(0,215,135,.15); color: var(--success); text-transform: uppercase; letter-spacing: .04em;
+    }
+    .card p { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
+    .card .tags { margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .card .tags span {
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      background: rgba(0,175,255,.1); color: var(--primary);
+    }
+    .install-steps { counter-reset: step; }
+    .install-step {
+      display: flex; gap: 16px; align-items: flex-start;
+      padding: 16px; margin-bottom: 8px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    }
+    .install-step .num {
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--primary); color: #fff; font-size: 14px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .install-step .body { flex: 1; min-width: 0; }
+    .install-step .body p { font-size: 14px; margin-bottom: 4px; }
+    .install-step .body code {
+      display: block; padding: 10px 14px; background: var(--code-bg);
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 13px; color: var(--success); overflow-x: auto;
+    }
+    .code-block {
+      background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px 20px; font-size: 13px; overflow-x: auto; line-height: 1.5;
+    }
+    .code-block .cm { color: #8b949e; }
+    .code-block .kw { color: #ff7b72; }
+    .code-block .fn { color: #d2a8ff; }
+    .code-block .str { color: #a5d6ff; }
+    .code-block .num { color: #79c0ff; }
+    .cmd-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 8px; }
+    .cmd-item {
+      display: flex; gap: 10px; padding: 10px 14px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+      align-items: baseline;
+    }
+    .cmd-item .cmd { font-family: monospace; font-size: 13px; color: var(--primary); white-space: nowrap; }
+    .cmd-item .desc { font-size: 13px; color: var(--text-dim); }
+    .feature-list { list-style: none; }
+    .feature-list li {
+      padding: 8px 0; font-size: 14px; color: var(--text-dim);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .feature-list li::before { content: '✓'; color: var(--success); font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-weight: 600; color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+    td { color: var(--text); }
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px;
+      background: transparent; color: var(--text-dim); font-size: 13px; cursor: pointer;
+      transition: all .15s;
+    }
+    .tab-btn:hover { border-color: var(--text-dim); color: var(--text); }
+    .tab-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .providers { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 12px; }
+    .provider-card {
+      text-align: center; padding: 20px; border-radius: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+    }
+    .provider-card .name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+    .provider-card .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px; }
+    .tag-local { background: rgba(0,215,135,.15); color: var(--success); }
+    .tag-cloud { background: rgba(0,175,255,.15); color: var(--primary); }
+    .provider-card .model { font-size: 12px; color: var(--text-dim); }
+    footer {
+      border-top: 1px solid var(--border); padding: 32px 0;
+      text-align: center; color: var(--text-dim); font-size: 13px;
+    }
+    footer a { color: var(--text); }
+    .termux-note {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 16px; margin-top: 16px;
+      background: rgba(255,175,0,.08); border: 1px solid rgba(255,175,0,.2); border-radius: 8px;
+      font-size: 14px;
+    }
+    .termux-note .icon { font-size: 20px; }
+    @media (max-width: 600px) {
+      nav .links { display: none; }
+      .hero { padding: 48px 0 40px; }
+      section { padding: 40px 0; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="container">
+      <div class="logo"><span>⚡</span> LoveCode <span>AI</span></div>
+      <div class="links">
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#commands">Commands</a>
+        <a href="#tui">TUI</a>
+        <a href="#providers">Providers</a>
+        <a href="#config">Config</a>
+        <a href="#dev">Dev</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <h1>Code with <span>LoveCode AI</span></h1>
+      <p>Open-source, terminal-native autonomous coding agent powered by free AI models. Works offline, respects your privacy.</p>
+      <div class="hero-actions">
+        <a href="#install" class="btn btn-primary">⚡ Install Now</a>
+        <a href="https://github.com/ashispluslaxmi-debug/LoveCode" class="btn btn-outline" target="_blank">View on GitHub</a>
+      </div>
+      <div class="hero-cmd"><span>$</span> npm install -g lovecode-ai && lovecode chat</div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="container">
+      <h2><span class="icon">🚀</span> Features</h2>
+      <p>Everything you need for AI-assisted coding right from your terminal.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>⚡ Lightweight <span class="badge">fast</span></h3>
+          <p>Fast startup, minimal RAM usage (~128MB on low-end devices). Perfect for servers, Raspberry Pi, and Termux.</p>
+        </div>
+        <div class="card">
+          <h3>🔓 Open Source <span class="badge">MIT</span></h3>
+          <p>100% open source under MIT license. Community-driven development with no vendor lock-in. Contributions welcome.</p>
+          <div class="tags"><span>MIT</span><span>GitHub</span></div>
+        </div>
+        <div class="card">
+          <h3>💻 Terminal Native</h3>
+          <p>Keyboard-first workflow. No IDE required. Works over SSH, in tmux, or directly on your server.</p>
+          <div class="tags"><span>SSH</span><span>tmux</span><span>headless</span></div>
+        </div>
+        <div class="card">
+          <h3>🆓 Free AI First</h3>
+          <p>No paid API dependency. Use local models via Ollama or free cloud tiers from Groq, OpenRouter, Together, HuggingFace.</p>
+          <div class="tags"><span>Ollama</span><span>Groq</span><span>OpenRouter</span></div>
+        </div>
+        <div class="card">
+          <h3>🤖 Autonomous</h3>
+          <p>Multi-step agent workflows with planning, tool execution, and self-correction. Supports assist, smart, and yolo modes.</p>
+          <div class="tags"><span>agent</span><span>auto</span></div>
+        </div>
+        <div class="card">
+          <h3>📱 Termux Ready</h3>
+          <p>Runs on Android via Termux with auto-detected optimizations: low RAM mode, touch-friendly numbered input, reduced cache.</p>
+          <div class="tags"><span>Android</span><span>Termux</span><span>touch</span></div>
+        </div>
+        <div class="card">
+          <h3>🔧 File Tools</h3>
+          <p>AI can read, write, edit, create, delete, search, and refactor files in your project using tool tags.</p>
+          <div class="tags"><span>read</span><span>write</span><span>edit</span><span>grep</span></div>
+        </div>
+        <div class="card">
+          <h3>🎨 TUI Interface</h3>
+          <p>Rich terminal UI with split panes, chat box with vim keybindings, command runner, theme system, and real-time streaming.</p>
+          <div class="tags"><span>Ink</span><span>React</span><span>themes</span></div>
+        </div>
+        <div class="card">
+          <h3>🔒 Security</h3>
+          <p>Sandboxed command execution, risk assessment, secret scanning, permission controls, and approval workflows.</p>
+          <div class="tags"><span>sandbox</span><span>audit</span></div>
+        </div>
+        <div class="card">
+          <h3>🌐 Browser Automation</h3>
+          <p>Playwright-powered browser automation for web testing, screenshots, and DOM inspection right from chat.</p>
+          <div class="tags"><span>Playwright</span><span>automation</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="container">
+      <h2><span class="icon">📦</span> Installation</h2>
+      <p>Get started in under a minute.</p>
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="num">1</div>
+          <div class="body">
+            <p>Install globally via npm</p>
+            <code>npm install -g lovecode-ai</code>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="num">2</div>
+          <div class="body">
+            <p>Initialize in your project</p>
+            <code>lovecode init</code>
+          </div>
+        </div>
+        <div class="install-step">
+          <div class="num">3</div>
+          <div class="body">
+            <p>Start chatting with AI</p>
+            <code>lovecode chat</code>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin:24px 0 12px;font-size:16px;">📱 Termux (Android)</h3>
+      <div class="install-step">
+        <div class="num">1</div>
+        <div class="body">
+          <p>Install Node.js and lovecode</p>
+          <code>pkg install nodejs && npm install -g lovecode-ai</code>
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="num">2</div>
+        <div class="body">
+          <p>Initialize and start</p>
+          <code>lovecode init && lovecode tui</code>
+        </div>
+      </div>
+      <div class="termux-note">
+        <div class="icon">📱</div>
+        <div>LoveCode auto-detects Termux and enables low RAM mode (128MB), touch-friendly numbered input, and reduced cache TTL (120s).</div>
+      </div>
+
+      <h3 style="margin:24px 0 12px;font-size:16px;">🔧 From Source</h3>
+      <div class="code-block">
+        <span class="cm"># Clone and build</span>
+        git clone https://github.com/ashispluslaxmi-debug/LoveCode.git
+        <span style="color:var(--text)">cd LoveCode</span>
+        npm install
+        npm run build
+        npm link
+      </div>
+    </div>
+  </section>
+
+  <section id="commands" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="container">
+      <h2><span class="icon">⌨️</span> CLI Commands</h2>
+      <p>All commands available in the lovecode CLI.</p>
+      <div class="cmd-grid">
+        <div class="cmd-item"><span class="cmd">lovecode chat</span><span class="desc">Interactive chat session</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode run</span><span class="desc">Autonomous task execution</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode init</span><span class="desc">Initialize project config</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode tui</span><span class="desc">Terminal UI interface</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode config</span><span class="desc">View/modify config</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode env</span><span class="desc">Manage environment vars</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode env select</span><span class="desc">Interactive env selection</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode models</span><span class="desc">Manage AI models</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode platform</span><span class="desc">Show platform status</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode security</span><span class="desc">Security tools</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode memory</span><span class="desc">Manage sessions</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode git</span><span class="desc">Git integration</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode browser</span><span class="desc">Browser automation</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode plugin</span><span class="desc">Plugin management</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode telemetry</span><span class="desc">Telemetry settings</span></div>
+        <div class="cmd-item"><span class="cmd">lovecode install</span><span class="desc">Install info & guide</span></div>
+      </div>
+
+      <h3 style="margin:24px 0 12px;font-size:16px;">🖥️ TUI Slash Commands</h3>
+      <div class="cmd-grid">
+        <div class="cmd-item"><span class="cmd">/help</span><span class="desc">Show help</span></div>
+        <div class="cmd-item"><span class="cmd">/clear</span><span class="desc">Clear chat</span></div>
+        <div class="cmd-item"><span class="cmd">/theme &lt;name&gt;</span><span class="desc">Change theme</span></div>
+        <div class="cmd-item"><span class="cmd">/themes</span><span class="desc">List themes</span></div>
+        <div class="cmd-item"><span class="cmd">/connect</span><span class="desc">Show providers</span></div>
+        <div class="cmd-item"><span class="cmd">/model</span><span class="desc">Show AI config</span></div>
+        <div class="cmd-item"><span class="cmd">/system &lt;p&gt;</span><span class="desc">Set system prompt</span></div>
+        <div class="cmd-item"><span class="cmd">/export</span><span class="desc">Export chat to file</span></div>
+        <div class="cmd-item"><span class="cmd">/sessions</span><span class="desc">List saved sessions</span></div>
+        <div class="cmd-item"><span class="cmd">/!&lt;cmd&gt;</span><span class="desc">Run shell command</span></div>
+        <div class="cmd-item"><span class="cmd">/exit</span><span class="desc">Quit TUI</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tui">
+    <div class="container">
+      <h2><span class="icon">🎨</span> Terminal UI</h2>
+      <p>Rich split-pane TUI built with Ink + React. Full vim keybindings, themes, and streaming AI responses.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>📐 Split Panes</h3>
+          <p>Four panes: repo context, chat box, command runner, and input bar. Tab to cycle focus.</p>
+        </div>
+        <div class="card">
+          <h3>⌨️ Vim Mode</h3>
+          <p><code>Esc</code> for normal mode, <code>i</code> for insert, <code>j/k</code> scroll, <code>g/G</code> top/bottom.</p>
+        </div>
+        <div class="card">
+          <h3>🎭 5 Themes</h3>
+          <p>Default, Dark, Light, Ocean (double borders), Solarized. Switch with <code>/theme &lt;name&gt;</code>.</p>
+        </div>
+        <div class="card">
+          <h3>💬 Markdown Rendering</h3>
+          <p>AI responses render markdown with syntax-highlighted code blocks, tables, lists, and links.</p>
+        </div>
+        <div class="card">
+          <h3>⏎ Command History</h3>
+          <p>Up/down arrows browse last 50 sent messages. Tab completion for slash commands.</p>
+        </div>
+        <div class="card">
+          <h3>💾 Session Persistence</h3>
+          <p>Chat sessions auto-save. Export with <code>/export</code>, list with <code>/sessions</code>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="providers" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="container">
+      <h2><span class="icon">🤖</span> AI Providers</h2>
+      <p>LoveCode supports multiple free and local AI providers. No paid subscription required.</p>
+      <div class="providers">
+        <div class="provider-card">
+          <div class="name">Ollama</div>
+          <div class="tag tag-local">local</div>
+          <div class="model">codellama, deepseek-coder, llama3, mistral, phi3</div>
+        </div>
+        <div class="provider-card">
+          <div class="name">Groq</div>
+          <div class="tag tag-cloud">cloud</div>
+          <div class="model">mixtral, llama3, gemma — free tier</div>
+        </div>
+        <div class="provider-card">
+          <div class="name">OpenRouter</div>
+          <div class="tag tag-cloud">cloud</div>
+          <div class="model">Multiple models, free tier available</div>
+        </div>
+        <div class="provider-card">
+          <div class="name">Together AI</div>
+          <div class="tag tag-cloud">cloud</div>
+          <div class="model">Llama, Mistral, DeepSeek — free credits</div>
+        </div>
+        <div class="provider-card">
+          <div class="name">HuggingFace</div>
+          <div class="tag tag-cloud">cloud</div>
+          <div class="model">Inference API with free tier</div>
+        </div>
+      </div>
+
+      <h3 style="margin:32px 0 12px;font-size:16px;">🔧 AI File System Access</h3>
+      <p style="margin-bottom:16px;">When connected to a provider, the AI can access your project files using tool tags. Available in both <code>lovecode tui</code> and <code>lovecode run</code>.</p>
+      <div class="cmd-grid">
+        <div class="cmd-item"><span class="cmd">read_file</span><span class="desc">Read file contents</span></div>
+        <div class="cmd-item"><span class="cmd">write_file</span><span class="desc">Create/overwrite files</span></div>
+        <div class="cmd-item"><span class="cmd">edit_file</span><span class="desc">Search and replace in file</span></div>
+        <div class="cmd-item"><span class="cmd">create_file</span><span class="desc">Create empty file</span></div>
+        <div class="cmd-item"><span class="cmd">delete_file</span><span class="desc">Delete file</span></div>
+        <div class="cmd-item"><span class="cmd">append_file</span><span class="desc">Append to file</span></div>
+        <div class="cmd-item"><span class="cmd">grep_search</span><span class="desc">Search file contents</span></div>
+        <div class="cmd-item"><span class="cmd">glob_search</span><span class="desc">Find files by pattern</span></div>
+        <div class="cmd-item"><span class="cmd">read_dir</span><span class="desc">List directory</span></div>
+        <div class="cmd-item"><span class="cmd">execute_command</span><span class="desc">Run shell commands</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="config">
+    <div class="container">
+      <h2><span class="icon">⚙️</span> Configuration</h2>
+      <p>LoveCode stores config in <code>.lovecode/config.yaml</code>. Managed via <code>lovecode config</code> or <code>lovecode init</code>.</p>
+      <div class="code-block">
+        <span class="cm"># .lovecode/config.yaml</span>
+        model: codellama
+        theme: neon
+        approval_mode: smart
+        provider: ollama
+        model_params:
+          temperature: 0.2
+          max_tokens: 4096
+        performance:
+          lazy_load: true
+          cache_ttl: 300000
+          max_memory_mb: 200
+        termux:
+          low_ram: false
+          touch_optimized: false
+        telemetry:
+          enabled: false
+        security:
+          profile: standard
+          scan_secrets: true
+      </div>
+
+      <h3 style="margin:24px 0 12px;font-size:16px;">🌱 Environment Variables</h3>
+      <p>API keys and overrides can be set via <code>.env</code> or <code>lovecode env select</code>.</p>
+      <table>
+        <tr><th>Variable</th><th>Purpose</th></tr>
+        <tr><td>GROQ_API_KEY</td><td>Groq API key for LLM access</td></tr>
+        <tr><td>OPENROUTER_API_KEY</td><td>OpenRouter API key</td></tr>
+        <tr><td>TOGETHER_API_KEY</td><td>Together AI API key</td></tr>
+        <tr><td>HUGGINGFACE_API_KEY</td><td>HuggingFace API key</td></tr>
+        <tr><td>OPENAI_API_KEY</td><td>OpenAI API key (fallback)</td></tr>
+        <tr><td>OLLAMA_URL</td><td>Ollama server URL (default: localhost:11434)</td></tr>
+        <tr><td>LOVECODE_MODEL</td><td>Override default model</td></tr>
+        <tr><td>LOVECODE_THEME</td><td>Override default theme</td></tr>
+        <tr><td>LOVECODE_LOG_LEVEL</td><td>Log level (debug|info|warn|error)</td></tr>
+        <tr><td>LOVECODE_APPROVAL_MODE</td><td>Override approval mode</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section id="dev" style="background:var(--surface);border-top:1px solid var(--border);">
+    <div class="container">
+      <h2><span class="icon">🛠️</span> Development</h2>
+      <p>LoveCode is built with TypeScript, Ink (React for terminal), and modern ESM.</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>📁 Project Structure</h3>
+          <ul class="feature-list">
+            <li><code>bin/</code> — CLI entry point</li>
+            <li><code>src/commands/</code> — Command implementations</li>
+            <li><code>src/tui/</code> — React Ink TUI components</li>
+            <li><code>src/ai/</code> — AI provider integrations</li>
+            <li><code>src/core/</code> — Agent and tool system</li>
+            <li><code>src/config/</code> — Configuration</li>
+            <li><code>src/security/</code> — Security sandbox</li>
+            <li><code>src/plugins/</code> — Plugin system</li>
+            <li><code>src/browser/</code> — Playwright automation</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🔄 Development Commands</h3>
+          <div class="code-block" style="margin-top:8px;border:none;padding:0;">
+            <span class="cm"># Watch mode</span>
+            npm run dev
+
+            <span class="cm"># Build</span>
+            npm run build
+
+            <span class="cm"># Test</span>
+            npm run test
+
+            <span class="cm"># Lint</span>
+            npm run lint
+
+            <span class="cm"># Type check</span>
+            npm run typecheck
+
+            <span class="cm"># Format</span>
+            npm run format
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <div class="container">
+      <h2><span class="icon">🗺️</span> Roadmap</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>✅ Done</h3>
+          <ul class="feature-list">
+            <li>CLI framework with chat, run, init</li>
+            <li>Rich TUI with themes and vim mode</li>
+            <li>Multi-provider AI support</li>
+            <li>File read/write/edit tools</li>
+            <li>Shell command execution with sandbox</li>
+            <li>Multi-step autonomous agent loop</li>
+            <li>Code search (grep, glob)</li>
+            <li>Git integration</li>
+            <li>Plugin system</li>
+            <li>Security & secret scanning</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🔜 Coming Soon</h3>
+          <ul class="feature-list">
+            <li>MCP server support</li>
+            <li>Windows/WSL support</li>
+            <li>Remote agent mode</li>
+            <li>Collaborative sessions</li>
+            <li>Custom tool creation</li>
+            <li>Advanced vector memory</li>
+            <li>Web search integration</li>
+            <li>Code review automation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>Built with ❤️ for the terminal &mdash; <a href="https://github.com/ashispluslaxmi-debug/LoveCode">LoveCode AI</a> &mdash; MIT Licensed</p>
+    </div>
+  </footer>
+</body>
+</html>
