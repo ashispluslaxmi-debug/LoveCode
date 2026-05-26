@@ -1,0 +1,17 @@
+{
+  "id": "mplwa1m50uqw",
+  "title": "Chat - codellama",
+  "created": 1779755174573,
+  "updated": 1779755177457,
+  "model": "codellama",
+  "provider": "ollama",
+  "workingDir": "/workspaces/LoveCode",
+  "entries": [
+    {
+      "role": "user",
+      "content": "hi",
+      "timestamp": 1779755177457
+    }
+  ],
+  "context": {}
+}

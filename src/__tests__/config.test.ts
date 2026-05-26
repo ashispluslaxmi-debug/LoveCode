@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
+import * as fs from 'node:fs';
 import { loadConfig, saveConfig, resetConfig, getDefaults, formatConfig } from '../config/config.js';
-import { loadEnv, saveEnv, KNOWN_ENV_VARS } from '../config/env.js';
+import { loadEnv, saveEnv } from '../config/env.js';
 import { cached, cachedAsync, invalidateCache } from '../performance/cache.js';
 
 const TEST_DIR = '/tmp/lovecode-test-config';
@@ -61,21 +62,19 @@ describe('Config System', () => {
 describe('Environment Variables', () => {
   afterEach(() => {
     const envPath = '/tmp/lovecode-test-env/.env';
-    const fs = require('node:fs');
     if (fs.existsSync(envPath)) fs.unlinkSync(envPath);
   });
 
   it('loads env vars from .env file', () => {
-    const { writeFileSync, existsSync, unlinkSync, mkdirSync } = require('node:fs');
     const dir = '/tmp/lovecode-test-env';
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    writeFileSync(`${dir}/.env`, 'GROQ_API_KEY=gsk_test123\nOPENROUTER_API_KEY=sk-or-abc\n', 'utf-8');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(`${dir}/.env`, 'GROQ_API_KEY=gsk_test123\nOPENROUTER_API_KEY=sk-or-abc\n', 'utf-8');
 
     const vars = loadEnv(dir);
     expect(vars.GROQ_API_KEY).toBe('gsk_test123');
     expect(vars.OPENROUTER_API_KEY).toBe('sk-or-abc');
 
-    if (existsSync(`${dir}/.env`)) unlinkSync(`${dir}/.env`);
+    if (fs.existsSync(`${dir}/.env`)) fs.unlinkSync(`${dir}/.env`);
   });
 
   it('saves env vars to .env file', () => {

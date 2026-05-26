@@ -33,12 +33,13 @@ npm install -g lovecode-ai
 ### From source
 
 ```bash
-git clone https://github.com/anomalyco/lovecode.git
+git clone https://github.com/ashispluslaxmi-debug/LoveCode.git
 cd lovecode
 npm install
 npm run build
 npm link
 ```
+
 
 ## Quick Start
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectInstallMethod, getInstallerInfo, isGloballyInstalled, createInstallScript } from '../installers/install.js';
+import { detectInstallMethod, getInstallerInfo, createInstallScript } from '../installers/install.js';
 import * as fs from 'node:fs';
 
 describe('Installer System', () => {

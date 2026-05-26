@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
+import type { LoveCodeConfig } from '../config/config.js';
 import { loadConfig, saveConfig, formatConfig } from '../config/config.js';
 
 async function cmdShow(options: { dir?: string }) {
@@ -29,7 +30,7 @@ async function cmdSetApproval(mode: string, options: { dir?: string }) {
     return;
   }
   const config = loadConfig(options.dir);
-  config.approval_mode = mode as any;
+  config.approval_mode = mode as LoveCodeConfig['approval_mode'];
   saveConfig(config, options.dir);
   console.log(chalk.green(`Approval mode set to: ${mode}`));
 }

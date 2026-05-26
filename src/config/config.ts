@@ -60,9 +60,6 @@ const DEFAULT_CONFIG: LoveCodeConfig = {
 };
 
 let cachedConfig: LoveCodeConfig | null = null;
-const CONFIG_FILENAME = '.lovecode/config.yaml';
-const LEGACY_JSON = '.lovecode/config.json';
-
 export function configDir(rootDir?: string): string {
   return path.resolve(rootDir || process.cwd(), '.lovecode');
 }
@@ -83,12 +80,12 @@ export function loadConfig(rootDir?: string): LoveCodeConfig {
   const yml = yamlPath(rootDir);
   const json = jsonPath(rootDir);
 
-  let fileConfig: Record<string, any> = {};
+  let fileConfig: Record<string, unknown> = {};
 
   if (fs.existsSync(yml)) {
     try {
       const raw = fs.readFileSync(yml, 'utf-8');
-      const parsed = YAML.load(raw) as Record<string, any>;
+      const parsed = YAML.load(raw) as Record<string, unknown>;
       if (parsed) fileConfig = parsed;
     } catch (err) {
       console.error(chalk.yellow(`Warning: Failed to parse ${yml}: ${err}`));

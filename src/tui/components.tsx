@@ -235,9 +235,12 @@ interface StatusBarProps {
   focus: FocusTarget;
   vimMode: string;
   messages: number;
+  sessionName?: string;
+  provider?: string;
+  model?: string;
 }
 
-export function StatusBar({ mode, theme: themeName, focus, vimMode, messages }: StatusBarProps) {
+export function StatusBar({ mode, theme: themeName, focus, vimMode, messages, sessionName, provider, model }: StatusBarProps) {
   const theme = getTheme();
 
   return (
@@ -250,11 +253,14 @@ export function StatusBar({ mode, theme: themeName, focus, vimMode, messages }: 
       <Text>
         <Text color={theme.colors.secondary}>LoveCode</Text>
         <Text color={theme.colors.textDim}> AI </Text>
+        {sessionName && <><Text color={theme.colors.muted}>|</Text><Text color={theme.colors.textDim}> {sessionName} </Text></>}
         <Text color={theme.colors.muted}>|</Text>
         <Text color={theme.colors.text}> Mode: </Text>
         <Text color={theme.colors.primary}>{mode}</Text>
       </Text>
       <Text>
+        {provider && <><Text color={theme.colors.textDim}>{provider}</Text><Text color={theme.colors.muted}> | </Text></>}
+        {model && <><Text color={theme.colors.textDim}>{model}</Text><Text color={theme.colors.muted}> | </Text></>}
         <Text color={theme.colors.textDim}>Focus: </Text>
         <Text color={theme.colors.accent}>{focus}</Text>
         <Text color={theme.colors.muted}> | </Text>

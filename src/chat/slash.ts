@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
 import { createRequire } from 'node:module';
+import type { ProviderEntry } from '../ai/registry.js';
 
 const _require = createRequire(import.meta.url);
 
@@ -144,7 +145,7 @@ export class SlashHandler {
       description: 'Configure provider, model, and API key',
       usage: '/connect',
       execute: async () => {
-        const { getAllProviders, getProvider } = _require('../ai/registry.js');
+        const { getAllProviders } = _require('../ai/registry.js');
         const { loadConfig, saveConfig } = _require('../config/config.js');
 
         const saved = getSavedProviders();
@@ -159,7 +160,7 @@ export class SlashHandler {
         }
 
         lines.push(chalk.dim('\n  Available providers:'));
-        providers.forEach((p: any, i: number) => {
+        providers.forEach((p: ProviderEntry, i: number) => {
           const tag = p.local ? chalk.green('local') : chalk.blue('cloud');
           lines.push(`  ${chalk.cyan(`${i + 1}`)}. ${chalk.white(p.name.padEnd(15))} ${tag}`);
         });

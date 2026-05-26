@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { assessCommandRisk, assessToolRisk } from '../security/risk.js';
 import { scanText } from '../security/secrets.js';
-import { checkCommand, getProfile, listProfiles } from '../security/sandbox.js';
+import { checkCommand, listProfiles } from '../security/sandbox.js';
 import { loadPermissions, setDefault, addPermission, removePermission, checkPermission, resetPermissions } from '../security/permissions.js';
 
 describe('Security - Risk Assessment', () => {

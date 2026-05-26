@@ -1,4 +1,4 @@
-import { PerformanceMark, performance } from 'node:perf_hooks';
+import { performance } from 'node:perf_hooks';
 
 const marks: Map<string, number> = new Map();
 
@@ -50,11 +50,9 @@ export function startupTime(): number {
 export function measureStartup(): { total: number; imports: number; config: number } {
   startTimer('startup.total');
   startTimer('startup.imports');
-  const imports = 0;
   const importTime = endTimer('startup.imports');
 
   startTimer('startup.config');
-  const config = 0;
   const configTime = endTimer('startup.config');
 
   const total = endTimer('startup.total');

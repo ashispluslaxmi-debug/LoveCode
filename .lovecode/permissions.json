@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "entries": [],
+  "defaults": {
+    "fileRead": "allow",
+    "fileWrite": "ask",
+    "networkAccess": "ask",
+    "commandExecution": "ask",
+    "environmentAccess": "allow"
+  },
+  "trustedSources": [
+    "localhost",
+    "*.npmjs.org",
+    "registry.npmjs.org"
+  ]
+}

@@ -26,6 +26,7 @@ import {
   resetPermissions,
   formatPermissions,
 } from '../security/permissions.js';
+import type { PermissionSet } from '../security/permissions.js';
 
 async function cmdAssessRisk(command: string | undefined, options: { tool?: string; args?: string }) {
   if (command) {
@@ -83,11 +84,11 @@ async function cmdSandbox(command: string, options: { profile?: string }) {
 async function cmdPermissions(options: { dir?: string; set?: string; add?: string; action?: string; remove?: string; source?: string }) {
   if (options.set && options.action) {
     const defaults = ['fileRead', 'fileWrite', 'networkAccess', 'commandExecution', 'environmentAccess'] as const;
-    if (!defaults.includes(options.set as any)) {
+    if (!defaults.includes(options.set as keyof PermissionSet['defaults'])) {
       console.log(chalk.red(`Invalid default: ${options.set}. Options: ${defaults.join(', ')}`));
       return;
     }
-    const perms = setDefault(options.set as any, options.action as 'allow' | 'deny' | 'ask', options.dir);
+    const perms = setDefault(options.set as keyof PermissionSet['defaults'], options.action as 'allow' | 'deny' | 'ask', options.dir);
     console.log(chalk.green(`Default "${options.set}" set to "${options.action}".`));
     console.log(formatPermissions(perms));
   } else if (options.add && options.action) {
@@ -99,7 +100,7 @@ async function cmdPermissions(options: { dir?: string; set?: string; add?: strin
     const ok = removePermission(options.remove, options.dir);
     console.log(ok ? chalk.green(`Removed permission: ${options.remove}`) : chalk.yellow(`Permission not found: ${options.remove}`));
   } else if (options.source) {
-    const perms = addTrustedSource(options.source, options.dir);
+    addTrustedSource(options.source, options.dir);
     console.log(chalk.green(`Trusted source added: ${options.source}`));
   } else {
     const perms = loadPermissions(options.dir);
@@ -108,7 +109,7 @@ async function cmdPermissions(options: { dir?: string; set?: string; add?: strin
 }
 
 async function cmdCheckPermission(resource: string, options: { dir?: string; category?: string }) {
-  const category = (options.category as any) || 'fileRead';
+  const category = (options.category as keyof PermissionSet['defaults']) || 'fileRead';
   const result = checkPermission(resource, category, options.dir);
   const color = result === 'allow' ? chalk.green : result === 'deny' ? chalk.red : chalk.yellow;
   console.log(`  ${color(result.toUpperCase())}  ${chalk.dim(resource)} (${category})`);

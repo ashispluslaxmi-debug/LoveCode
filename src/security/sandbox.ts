@@ -117,7 +117,7 @@ const BLOCKED_COMMANDS: SandboxRule[] = [
     id: 'no-package-manager-mod',
     description: 'Block package manager modifications',
     active: false,
-    check: (cmd: string) => {
+    check: (_cmd: string) => {
       return { allowed: true };
     },
   },

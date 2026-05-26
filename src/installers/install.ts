@@ -47,6 +47,15 @@ export function printInstallInstructions(): void {
   console.log(`    curl -fsSL https://lovecode.sh | bash\n`);
   console.log(`  ${chalk.green('Verify:')}`);
   console.log(`    lovecode --version\n`);
+
+  console.log(chalk.bold('  Termux (Android):\n'));
+  console.log(`    pkg install nodejs`);
+  console.log(`    npm install -g lovecode-ai`);
+  console.log(`    lovecode init\n`);
+  console.log(`  ${chalk.dim('LoveCode auto-detects Termux and enables:')}`);
+  console.log(`  ${chalk.dim('  • Low RAM mode (128MB max)')}`);
+  console.log(`  ${chalk.dim('  • Touch-optimized input')}`);
+  console.log(`  ${chalk.dim('  • Reduced cache TTL (120s)')}\n`);
 }
 
 export function createInstallScript(rootDir?: string): void {
